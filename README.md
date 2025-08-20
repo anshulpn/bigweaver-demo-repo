@@ -93,6 +93,43 @@ The system supports the following trading actions:
    yarn start
    ```
 
+### Available Scripts
+
+The following scripts are available in the package.json:
+
+- `npm run build`: Compiles TypeScript code to JavaScript in the dist directory
+- `npm run test`: Runs Jest tests
+- `npm run lint`: Runs ESLint to check code quality
+- `npm run lint:fix`: Runs ESLint and automatically fixes issues when possible
+- `npm run start`: Starts the application in production mode
+- `npm run dev`: Starts the application in development mode with hot reloading
+- `npm run typecheck`: Runs TypeScript compiler to check types without emitting files
+
+### Development Workflow
+
+For development, you can use the following workflow:
+
+1. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+2. Make changes to the code
+3. Run tests to ensure everything works:
+   ```bash
+   npm run test
+   ```
+
+4. Check code quality:
+   ```bash
+   npm run lint
+   ```
+
+5. Build the project for production:
+   ```bash
+   npm run build
+   ```
+
 ## Usage Examples
 
 ### Configuring TradingView Webhooks
