@@ -27,7 +27,7 @@ This document outlines the tasks required for implementing the Paper Trading Web
 - [ ] Add commission calculation system
 
 ### Data Models and Type Definitions
-- [ ] Define TradingViewWebhook interface
+- [x] Define TradingViewWebhook interface
 - [ ] Create Portfolio and Position interfaces
 - [ ] Implement Trade and Order type definitions
 - [ ] Define system configuration interfaces
@@ -88,6 +88,22 @@ Many tasks have dependencies on other components. Here's a general order of impl
 4. Enhanced Features → UI/UX Improvements
 
 ## Completed Tasks
+
+### Data Models - TradingViewWebhook Interface (Completed)
+- [x] Define TradingViewWebhook interface for handling incoming webhook POST requests from TradingView
+  - Created comprehensive interface supporting both "application/json" and "text/plain" content-types
+  - Implemented flexible JSON structure to support customizable TradingView webhook payloads
+  - Defined core required fields: symbol, action, price, quantity, strategy, timestamp
+  - Added optional fields for common TradingView placeholders:
+    - ticker (alternative to symbol)
+    - sentiment (strategy.market_position for long/short/flat positions)
+    - contracts (alternative to quantity from strategy.order.contracts)
+    - Price data fields: open, high, low, close
+    - Order tracking fields: order_id, order_comment
+    - Additional metadata: time_in_force, exchange, interval, volume
+  - Implemented index signature to support custom user-defined fields
+  - Added comprehensive JSDoc documentation with usage examples
+  - Interface is fully backward compatible with existing code
 
 ### Enhanced Features - Trade History Visualization (Completed)
 - [x] Create trade history visualization
