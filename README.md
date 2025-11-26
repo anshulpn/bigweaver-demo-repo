@@ -206,6 +206,152 @@ The application follows a modular architecture with clear separation of concerns
 - **Services**: Business logic and external integrations
 - **Utils**: Shared utilities and helper functions
 
+## System Architecture Diagram
+
+The following diagram illustrates the system components and their interactions:
+
+```mermaid
+graph TB
+    subgraph "External System"
+        TV[TradingView Platform]
+        TV_Alert[TradingView Alert]
+    end
+
+    subgraph "Application Layer"
+        subgraph "API Layer"
+            Express[Express.js Server]
+            WebhookEndpoint[Webhook Endpoint<br/>/api/webhook]
+            HealthEndpoint[Health Check<br/>/health]
+        end
+
+        subgraph "Validation Layer"
+            Validator[Webhook Validator]
+            ValidationResult{Valid?}
+        end
+
+        subgraph "Service Layer"
+            WebhookService[Webhook Service]
+        end
+
+        subgraph "Trading Engine"
+            PaperTrading[Paper Trading System]
+            Portfolio[Portfolio Manager]
+            TradeExecutor[Trade Executor]
+        end
+
+        subgraph "Data Layer"
+            Models[Data Models<br/>ITradingViewWebhook<br/>IPortfolio<br/>IPosition<br/>ITrade]
+            Config[Configuration<br/>Initial Balance<br/>Commission Rate]
+        end
+
+        subgraph "Utilities"
+            Utils[Validators & Helpers]
+        end
+    end
+
+    subgraph "State Management"
+        Balance[Account Balance]
+        Positions[Open Positions]
+        TradeHistory[Trade History]
+    end
+
+    %% External connections
+    TV -->|Strategy Trigger| TV_Alert
+    TV_Alert -->|POST JSON Payload| WebhookEndpoint
+
+    %% API Layer flow
+    Express --> WebhookEndpoint
+    Express --> HealthEndpoint
+    WebhookEndpoint -->|Receive Request| Validator
+
+    %% Validation flow
+    Validator -->|Check Payload| ValidationResult
+    ValidationResult -->|Invalid| WebhookEndpoint
+    ValidationResult -->|Valid| WebhookService
+
+    %% Service flow
+    WebhookService -->|Process Webhook| PaperTrading
+    Config -.->|Initialize| PaperTrading
+
+    %% Trading Engine flow
+    PaperTrading --> TradeExecutor
+    PaperTrading --> Portfolio
+    TradeExecutor -->|BUY/SELL| Balance
+    TradeExecutor -->|Update| Positions
+    TradeExecutor -->|Record| TradeHistory
+    Portfolio -->|Read| Balance
+    Portfolio -->|Read| Positions
+    Portfolio -->|Read| TradeHistory
+
+    %% Data models
+    Models -.->|Type Safety| WebhookEndpoint
+    Models -.->|Type Safety| WebhookService
+    Models -.->|Type Safety| PaperTrading
+    Utils -.->|Validate| Validator
+
+    %% Response flow
+    Portfolio -->|Portfolio State| WebhookService
+    WebhookService -->|Success Result| WebhookEndpoint
+    WebhookEndpoint -->|200 OK| TV_Alert
+
+    %% Styling
+    classDef external fill:#ff9999,stroke:#333,stroke-width:2px
+    classDef api fill:#99ccff,stroke:#333,stroke-width:2px
+    classDef service fill:#99ff99,stroke:#333,stroke-width:2px
+    classDef trading fill:#ffcc99,stroke:#333,stroke-width:2px
+    classDef data fill:#cc99ff,stroke:#333,stroke-width:2px
+    classDef state fill:#ffff99,stroke:#333,stroke-width:2px
+
+    class TV,TV_Alert external
+    class Express,WebhookEndpoint,HealthEndpoint api
+    class Validator,ValidationResult,WebhookService service
+    class PaperTrading,Portfolio,TradeExecutor trading
+    class Models,Config,Utils data
+    class Balance,Positions,TradeHistory state
+```
+
+### Component Descriptions
+
+#### External System
+- **TradingView Platform**: Third-party trading platform that generates trading signals
+- **TradingView Alert**: Configured alerts that trigger webhooks when conditions are met
+
+#### API Layer
+- **Express.js Server**: Node.js web server handling HTTP requests
+- **Webhook Endpoint**: POST endpoint (`/api/webhook`) receiving TradingView alerts
+- **Health Check**: GET endpoint (`/health`) for monitoring application status
+
+#### Validation Layer
+- **Webhook Validator**: Validates incoming webhook payloads against required schema
+- **Validation Result**: Determines if webhook data is valid before processing
+
+#### Service Layer
+- **Webhook Service**: Business logic for processing validated webhooks and orchestrating trade execution
+
+#### Trading Engine
+- **Paper Trading System**: Core trading logic managing simulated trades
+- **Trade Executor**: Executes buy/sell orders and calculates commissions
+- **Portfolio Manager**: Tracks current portfolio state including balance, positions, and history
+
+#### Data Layer
+- **Data Models**: TypeScript interfaces ensuring type safety across the application
+- **Configuration**: Application settings (initial balance, commission rates, etc.)
+- **Utilities**: Helper functions for validation and data processing
+
+#### State Management
+- **Account Balance**: Current available funds in the paper trading account
+- **Open Positions**: Active trading positions with entry prices and quantities
+- **Trade History**: Complete record of all executed trades
+
+### Data Flow
+
+1. **Webhook Reception**: TradingView sends JSON payload to `/api/webhook`
+2. **Validation**: Payload is validated for required fields and correct data types
+3. **Processing**: Valid webhooks are processed by the webhook service
+4. **Trade Execution**: Paper trading system executes the trade (BUY/SELL)
+5. **State Update**: Portfolio state is updated (balance, positions, history)
+6. **Response**: Success response with updated portfolio is returned to TradingView
+
 ## Development Guidelines
 
 ### Code Standards
