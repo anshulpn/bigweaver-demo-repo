@@ -28,24 +28,28 @@ This application integrates with TradingView's webhook functionality to automate
 2. **Event Structure**: Webhook events contain the following information:
    ```typescript
    interface TradingViewWebhook {
-     symbol: string;           // Trading pair or asset
-     action: 'BUY' | 'SELL';  // Trade direction
-     price: number;           // Entry/exit price
-     quantity: number;        // Trade size
-     strategy: string;        // Strategy identifier
-     timestamp: number;       // Event timestamp
+     symbol: string;                    // Trading pair or asset
+     action: 'BUY' | 'SELL';           // Trade direction
+     price: number;                     // Entry/exit price (or current market price for limit orders)
+     quantity: number;                  // Trade size
+     strategy: string;                  // Strategy identifier
+     timestamp: number;                 // Event timestamp
+     orderType?: 'MARKET' | 'LIMIT';   // Order type (optional, defaults to MARKET)
+     limitPrice?: number;               // Limit price for limit orders (required when orderType is LIMIT)
    }
    ```
 3. **Processing Flow**:
    - Webhook event validation
-   - Trade execution in paper trading environment
+   - Trade execution in paper trading environment (market or limit orders)
    - Position management and tracking
+   - Automatic limit order execution when price conditions are met
    - Performance calculation and reporting
 
 ### Trading Actions
 
 The system supports the following trading actions:
-- Market orders (buy/sell)
+- Market orders (buy/sell) - execute immediately at current market price
+- Limit orders (buy/sell) - execute automatically when price conditions are met
 - Position tracking
 - Portfolio management
 - Performance analytics
@@ -143,7 +147,7 @@ For development, you can use the following workflow:
        strategy.entry("Long", strategy.long)
    ```
 
-2. Set up webhook in TradingView alert:
+2. Set up webhook in TradingView alert for market orders:
    ```json
    {
      "symbol": "{{ticker}}",
@@ -155,8 +159,23 @@ For development, you can use the following workflow:
    }
    ```
 
+3. Set up webhook for limit orders:
+   ```json
+   {
+     "symbol": "{{ticker}}",
+     "action": "BUY",
+     "price": {{close}},
+     "quantity": 1,
+     "strategy": "SMA_CROSS",
+     "timestamp": {{time}},
+     "orderType": "LIMIT",
+     "limitPrice": 49000
+   }
+   ```
+
 ### Managing Paper Trades
 
+#### Market Orders
 ```typescript
 // Example of interacting with the paper trading system
 import { PaperTradingSystem } from './trading';
@@ -166,18 +185,55 @@ const trader = new PaperTradingSystem({
   commission: 0.1
 });
 
-// Execute a paper trade
+// Execute a market order (executes immediately)
 trader.executeTrade({
   symbol: 'BTCUSDT',
   action: 'BUY',
   price: 50000,
-  quantity: 0.1
+  quantity: 0.1,
+  strategy: 'TEST',
+  timestamp: Date.now()
 });
 
 // Get portfolio status
 const portfolio = trader.getPortfolio();
 console.log('Current Balance:', portfolio.balance);
 console.log('Open Positions:', portfolio.positions);
+```
+
+#### Limit Orders
+```typescript
+// Create a buy limit order (executes when market price ≤ limit price)
+trader.executeTrade({
+  symbol: 'BTCUSDT',
+  action: 'BUY',
+  price: 50000,        // Current market price
+  quantity: 0.1,
+  strategy: 'TEST',
+  timestamp: Date.now(),
+  orderType: 'LIMIT',
+  limitPrice: 49000    // Execute when price drops to $49,000
+});
+
+// Create a sell limit order (executes when market price ≥ limit price)
+trader.executeTrade({
+  symbol: 'BTCUSDT',
+  action: 'SELL',
+  price: 50000,        // Current market price
+  quantity: 0.1,
+  strategy: 'TEST',
+  timestamp: Date.now(),
+  orderType: 'LIMIT',
+  limitPrice: 55000    // Execute when price rises to $55,000
+});
+
+// Manage limit orders
+const pendingOrders = trader.getPendingLimitOrders();
+const btcOrders = trader.getPendingLimitOrdersBySymbol('BTCUSDT');
+trader.cancelLimitOrder(orderId);
+
+// Update market price to trigger limit order execution
+trader.updateMarketPrice('BTCUSDT', 48000); // Triggers buy limit at 49000
 ```
 
 ## Project Structure
