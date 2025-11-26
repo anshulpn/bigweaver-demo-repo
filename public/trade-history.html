@@ -189,6 +189,40 @@
             opacity: 0.6;
             cursor: not-allowed;
         }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+        
+        .export-btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: opacity 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .export-btn:hover {
+            opacity: 0.9;
+        }
+        
+        .export-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .export-btn.json {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
     </style>
 </head>
 <body>
@@ -199,6 +233,15 @@
         </div>
         
         <button id="refreshBtn" class="refresh-btn">Refresh Data</button>
+        
+        <div class="button-group">
+            <button id="exportCsvBtn" class="export-btn">
+                📊 Export as CSV
+            </button>
+            <button id="exportJsonBtn" class="export-btn json">
+                📄 Export as JSON
+            </button>
+        </div>
         
         <div id="error" class="error" style="display: none;"></div>
         
@@ -469,6 +512,73 @@
         
         // Event listeners
         document.getElementById('refreshBtn').addEventListener('click', loadTradeHistory);
+        
+        // Export button handlers
+        document.getElementById('exportCsvBtn').addEventListener('click', function() {
+            exportData('csv');
+        });
+        
+        document.getElementById('exportJsonBtn').addEventListener('click', function() {
+            exportData('json');
+        });
+        
+        // Export data function
+        async function exportData(format) {
+            const exportBtn = format === 'csv' ? 
+                document.getElementById('exportCsvBtn') : 
+                document.getElementById('exportJsonBtn');
+            
+            const originalText = exportBtn.textContent;
+            exportBtn.disabled = true;
+            exportBtn.textContent = 'Exporting...';
+            
+            try {
+                // Construct export URL with query parameters
+                const params = new URLSearchParams({
+                    format: format,
+                    includePositions: 'true',
+                    includeAnalytics: 'true'
+                });
+                
+                const response = await fetch(`/api/trades/export?${params}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Export failed with status: ${response.status}`);
+                }
+                
+                // Get the blob from response
+                const blob = await response.blob();
+                
+                // Get filename from Content-Disposition header if available
+                const contentDisposition = response.headers.get('Content-Disposition');
+                let filename = `trading-data.${format}`;
+                if (contentDisposition) {
+                    const matches = /filename="([^"]+)"/.exec(contentDisposition);
+                    if (matches && matches[1]) {
+                        filename = matches[1];
+                    }
+                }
+                
+                // Create download link and trigger download
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                
+                // Cleanup
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+            } catch (error) {
+                console.error('Export error:', error);
+                alert(`Failed to export data: ${error.message}`);
+            } finally {
+                exportBtn.disabled = false;
+                exportBtn.textContent = originalText;
+            }
+        }
         
         // Load data on page load
         document.addEventListener('DOMContentLoaded', loadTradeHistory);
