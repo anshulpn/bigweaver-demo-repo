@@ -61,7 +61,7 @@ This document outlines the tasks required for implementing the Paper Trading Web
 - [ ] Add support for limit orders
 - [ ] Implement strategy performance analytics
 - [x] Create trade history visualization
-- [ ] Add export functionality for trading data
+- [x] Add export functionality for trading data
 - [ ] Implement custom notification system
 
 ### Development Tools
@@ -103,6 +103,29 @@ Many tasks have dependencies on other components. Here's a general order of impl
     - Detailed trade history table with all transaction details
     - Auto-refresh functionality every 30 seconds
     - Responsive design with modern UI/UX
+
+### Enhanced Features - Export Functionality (Completed)
+- [x] Add export functionality for trading data
+  - Implemented export service supporting multiple formats (CSV, JSON)
+  - Created REST API endpoint `/api/trades/export` for data export
+  - Added configurable export options (includePositions, includeAnalytics)
+  - Integrated export buttons in trade history dashboard UI
+  - CSV export features:
+    - Complete trade history with timestamps, prices, and commissions
+    - Optional analytics section with performance metrics
+    - Optional open positions section
+    - Properly formatted with headers and readable structure
+  - JSON export features:
+    - Structured data export for programmatic use
+    - Configurable inclusion of positions and analytics
+    - Clean, well-formatted JSON output
+  - UI enhancements:
+    - Export as CSV button with visual indicator
+    - Export as JSON button with distinct styling
+    - Automatic file download with timestamped filenames
+    - Loading states during export operations
+  - Comprehensive test coverage for export service and API endpoints
+  - MIME type handling and proper Content-Disposition headers
 
 ## Notes
 
