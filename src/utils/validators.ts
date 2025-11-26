@@ -29,8 +29,8 @@ export function validateWebhook(payload: unknown): IValidationResult {
   // Check required fields
   if (!webhook.symbol) errors.push('Symbol is required');
   if (!webhook.action) errors.push('Action is required');
-  if (webhook.action && !['BUY', 'SELL'].includes(webhook.action)) {
-    errors.push('Action must be either BUY or SELL');
+  if (webhook.action && !['BUY', 'SELL', 'LIMIT_BUY', 'LIMIT_SELL'].includes(webhook.action)) {
+    errors.push('Action must be one of: BUY, SELL, LIMIT_BUY, LIMIT_SELL');
   }
   if (typeof webhook.price !== 'number') errors.push('Price must be a number');
   if (typeof webhook.quantity !== 'number') errors.push('Quantity must be a number');

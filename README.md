@@ -28,12 +28,12 @@ This application integrates with TradingView's webhook functionality to automate
 2. **Event Structure**: Webhook events contain the following information:
    ```typescript
    interface TradingViewWebhook {
-     symbol: string;           // Trading pair or asset
-     action: 'BUY' | 'SELL';  // Trade direction
-     price: number;           // Entry/exit price
-     quantity: number;        // Trade size
-     strategy: string;        // Strategy identifier
-     timestamp: number;       // Event timestamp
+     symbol: string;                                   // Trading pair or asset
+     action: 'BUY' | 'SELL' | 'LIMIT_BUY' | 'LIMIT_SELL'; // Trade direction
+     price: number;                                    // Entry/exit price or limit price
+     quantity: number;                                 // Trade size
+     strategy: string;                                 // Strategy identifier
+     timestamp: number;                                // Event timestamp
    }
    ```
 3. **Processing Flow**:
@@ -45,10 +45,24 @@ This application integrates with TradingView's webhook functionality to automate
 ### Trading Actions
 
 The system supports the following trading actions:
-- Market orders (buy/sell)
+- Market orders (buy/sell) - executed immediately at current market price
+- Limit orders (limit_buy/limit_sell) - executed only when price reaches the specified limit
 - Position tracking
 - Portfolio management
 - Performance analytics
+
+#### Limit Orders
+
+Limit orders allow you to set conditional trades that execute only when the market reaches your specified price:
+
+- **LIMIT_BUY**: Creates a buy order that executes when the market price drops to or below the specified limit price
+- **LIMIT_SELL**: Creates a sell order that executes when the market price rises to or above the specified limit price
+
+Limit orders help you:
+- Enter positions at better prices
+- Take profits automatically
+- Manage risk without constantly monitoring the market
+- Execute trades even when you're not actively watching
 
 ## Installation and Setup
 
@@ -155,6 +169,18 @@ For development, you can use the following workflow:
    }
    ```
 
+3. For limit orders, use LIMIT_BUY or LIMIT_SELL actions:
+   ```json
+   {
+     "symbol": "{{ticker}}",
+     "action": "LIMIT_BUY",
+     "price": 50000,
+     "quantity": 0.1,
+     "strategy": "DIP_BUY",
+     "timestamp": {{time}}
+   }
+   ```
+
 ### Managing Paper Trades
 
 ```typescript
@@ -178,6 +204,41 @@ trader.executeTrade({
 const portfolio = trader.getPortfolio();
 console.log('Current Balance:', portfolio.balance);
 console.log('Open Positions:', portfolio.positions);
+console.log('Active Limit Orders:', portfolio.limitOrders);
+
+// Create a limit order
+trader.executeTrade({
+  symbol: 'BTCUSDT',
+  action: 'LIMIT_BUY',
+  price: 48000, // Will execute when price drops to 48000 or below
+  quantity: 0.1
+});
+
+// Check and execute limit orders based on current market price
+trader.checkAndExecuteLimitOrders('BTCUSDT', 47500);
+```
+
+### Managing Limit Orders via API
+
+The system provides REST API endpoints for managing limit orders:
+
+```bash
+# Get all active limit orders
+GET /api/limit-orders
+
+# Get limit orders for a specific symbol
+GET /api/limit-orders/BTCUSDT
+
+# Cancel a specific limit order
+DELETE /api/limit-orders/limit_123
+
+# Manually trigger price check for limit orders
+POST /api/limit-orders/check-price
+Content-Type: application/json
+{
+  "symbol": "BTCUSDT",
+  "price": 49000
+}
 ```
 
 ## Project Structure
