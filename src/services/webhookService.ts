@@ -9,6 +9,14 @@ const tradingSystem = new PaperTradingSystem({
 });
 
 /**
+ * Get the singleton instance of the trading system
+ * @returns The paper trading system instance
+ */
+export function getTradingSystemInstance(): PaperTradingSystem {
+  return tradingSystem;
+}
+
+/**
  * Process a TradingView webhook and execute the corresponding paper trade
  * @param webhook - The validated webhook payload
  * @returns Result of the trade execution

@@ -103,13 +103,8 @@ export class PaperTradingSystem {
       
       const position = this.portfolio.positions[positionIndex];
       
-      // Calculate profit/loss
-      const positionValue = position.entryPrice * quantity;
-      const currentValue = price * quantity;
-      const pnl = currentValue - positionValue - commissionAmount;
-      
       // Update balance
-      this.portfolio.balance += currentValue - commissionAmount;
+      this.portfolio.balance += price * quantity - commissionAmount;
       
       // Update position
       if (position.quantity === quantity) {
