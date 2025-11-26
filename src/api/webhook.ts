@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { validateWebhook } from '../utils/validators';
 import { processTradingViewWebhook } from '../services/webhookService';
 import { ITradingViewWebhook } from '../models/webhook.interface';
@@ -9,7 +9,7 @@ export const webhookRouter = express.Router();
  * POST /api/webhook
  * Endpoint for receiving TradingView webhook events
  */
-webhookRouter.post('/', async (req, res) => {
+webhookRouter.post('/', async (req: Request, res: Response) => {
   try {
     // Validate the webhook payload
     const validationResult = validateWebhook(req.body);

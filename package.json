@@ -26,6 +26,7 @@
   "author": "Paper Trading Team",
   "license": "MIT",
   "devDependencies": {
+    "@types/express": "^4.17.17",
     "@types/jest": "^29.5.0",
     "@types/node": "^18.15.0",
     "@typescript-eslint/eslint-plugin": "^5.59.0",
