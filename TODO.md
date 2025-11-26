@@ -58,7 +58,7 @@ This document outlines the tasks required for implementing the Paper Trading Web
 ## Low Priority Tasks
 
 ### Enhanced Features
-- [ ] Add support for limit orders
+- [x] Add support for limit orders
 - [ ] Implement strategy performance analytics
 - [x] Create trade history visualization
 - [ ] Add export functionality for trading data
@@ -103,6 +103,34 @@ Many tasks have dependencies on other components. Here's a general order of impl
     - Detailed trade history table with all transaction details
     - Auto-refresh functionality every 30 seconds
     - Responsive design with modern UI/UX
+
+### Enhanced Features - Limit Orders (Completed)
+- [x] Add support for limit orders
+  - Extended webhook interface to support `orderType` (MARKET/LIMIT) and `limitPrice` fields
+  - Updated ITrade interface to track order type (MARKET or LIMIT)
+  - Created ILimitOrder interface for managing pending limit orders
+  - Updated IPortfolio interface to include `pendingLimitOrders` array
+  - Implemented limit order creation with validation:
+    - BUY limit orders: validates sufficient balance before creation
+    - SELL limit orders: validates sufficient position quantity, accounting for pending orders
+    - Prevents over-allocation of positions across multiple limit orders
+  - Implemented automatic limit order execution:
+    - BUY limit orders execute when market price ≤ limit price
+    - SELL limit orders execute when market price ≥ limit price
+    - Orders automatically checked and executed on market price updates
+  - Added limit order management methods:
+    - `getPendingLimitOrders()`: retrieves all pending limit orders
+    - `getPendingLimitOrdersBySymbol(symbol)`: retrieves orders for specific symbol
+    - `cancelLimitOrder(orderId)`: cancels a pending limit order
+    - `updateMarketPrice(symbol, price)`: manually triggers limit order checks
+  - Implemented unique order ID generation for tracking
+  - Added comprehensive test coverage with 20+ test cases covering:
+    - Basic limit order creation for BUY and SELL actions
+    - Validation and error handling (insufficient balance, missing limit price, etc.)
+    - Automatic execution when price conditions are met
+    - Order management (cancellation, retrieval by symbol)
+    - Edge cases (multiple orders, position allocation)
+  - Maintains backward compatibility with existing market order functionality
 
 ## Notes
 

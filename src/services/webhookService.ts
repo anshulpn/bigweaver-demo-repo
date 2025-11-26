@@ -22,7 +22,8 @@ export function getTradingSystemInstance(): PaperTradingSystem {
  * @returns Result of the trade execution
  */
 export async function processTradingViewWebhook(webhook: ITradingViewWebhook): Promise<unknown> {
-  console.log(`Processing webhook for ${webhook.symbol}: ${webhook.action} at ${webhook.price}`);
+  const orderType = webhook.orderType || 'MARKET';
+  console.log(`Processing webhook for ${webhook.symbol}: ${webhook.action} ${orderType} order at ${webhook.price}`);
   
   // Execute the trade in the paper trading system
   const result = tradingSystem.executeTrade({
@@ -32,6 +33,8 @@ export async function processTradingViewWebhook(webhook: ITradingViewWebhook): P
     quantity: webhook.quantity,
     strategy: webhook.strategy,
     timestamp: webhook.timestamp,
+    orderType: webhook.orderType,
+    limitPrice: webhook.limitPrice,
   });
   
   return result;

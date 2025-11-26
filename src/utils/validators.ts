@@ -37,6 +37,18 @@ export function validateWebhook(payload: unknown): IValidationResult {
   if (!webhook.strategy) errors.push('Strategy is required');
   if (typeof webhook.timestamp !== 'number') errors.push('Timestamp must be a number');
 
+  // Validate optional orderType field
+  if (webhook.orderType !== undefined && !['MARKET', 'LIMIT'].includes(webhook.orderType)) {
+    errors.push('OrderType must be either MARKET or LIMIT');
+  }
+
+  // Validate limitPrice for limit orders
+  if (webhook.orderType === 'LIMIT') {
+    if (typeof webhook.limitPrice !== 'number') {
+      errors.push('LimitPrice is required and must be a number for limit orders');
+    }
+  }
+
   return {
     valid: errors.length === 0,
     errors: errors.length > 0 ? errors : undefined,
